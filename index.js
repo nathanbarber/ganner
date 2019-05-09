@@ -1,6 +1,6 @@
 const http = require("http"),
     fs = require("fs"),
-    spawn = require("child_process").spawnSync,
+    spawn = require("child_process").spawn,
     crypto = require("crypto"),
     formidable = require("formidable");
 var server = http.createServer();
@@ -35,9 +35,16 @@ async function router(req, resp) {
                 break;
             case "POST /process":
                 body = await multipart(req);
-
-                respond(resp, {
-                    "success": true
+                let genProcess = spawn(`${__dirname}/gen.sh`, [body.fields.tag]);
+                genProcess.stdout.on("data", (chunk) => {
+                    let message = Buffer.from(chunk).toString("utf-8");
+                    process.stdout.write(message);
+                });
+                genProcess.on("exit", (code) => {
+                    log("GEN exited with code: " + code);
+                    respond(resp, {
+                        "success": true
+                    });
                 });
                 break;
             default:
@@ -88,18 +95,19 @@ function request(req) {
 function multipart(req, path) {
     return new Promise((resolve, reject) => {
         let form = new formidable.IncomingForm(),
-            tag = crypto.randomBytes(16).toString("hex");
+            tag = crypto.randomBytes(64).toString("hex");
         form.on("fileBegin", (name, file) => {
             fs.mkdirSync(`${__dirname}/uploaded/${tag}`);
             file.path = `${__dirname}/uploaded/${tag}/${file.name}`;
         });
         form.parse(req, (err, fields, files) => {
             if(err) return reject(err);
-            for(let file in files) {
-                files[file]["tag"] = tag;
-            }
+            fields.tag = tag;
             log("MULTIPART -> " + JSON.stringify(fields) + JSON.stringify(files))
-            resolve(fields, files);
+            resolve({
+                fields: fields,
+                files: files
+            });
         });
     });
 }
