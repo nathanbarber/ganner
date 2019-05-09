@@ -1,6 +1,7 @@
-install:
+setup:
 	pip install -r compute/requirements.txt
 	npm install
+	mkdir uploaded
 
 cl-out:
 	rm ./out/*

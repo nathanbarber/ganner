@@ -19,5 +19,8 @@
   "homepage": "https://github.com/nathanbarber/ganner#readme",
   "devDependencies": {
     "nodemon": "^1.19.0"
+  },
+  "dependencies": {
+    "formidable": "^1.2.1"
   }
 }
