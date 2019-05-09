@@ -11,6 +11,9 @@ class Packer:
 
     def get_data(self):
         return self.image
+
+    def get_shape(self):
+        return np.shape(self.image)
     
     def provide_chunk(self, px, py, offsetx, offsety):
         shape = np.shape(self.image)
@@ -55,3 +58,19 @@ class Packer:
         one_hot = [ 0 for x in range(rng)]
         one_hot[val - 1] = 1
         return one_hot
+
+    def fract(self, sl):
+        shape = np.shape(self.image)
+        # sl is in pixels
+        y_st = int(np.floor(np.random.randint(0, shape[0] - sl)))
+        x_st = int(np.floor(np.random.randint(0, shape[1] - sl)))
+        _slice = []
+        for y in range(sl):
+            y_slice = self.image[y_st + y]
+            xy_slice = []
+            for x in range(sl):
+                xy_slice.append(y_slice[x_st + x])
+            _slice.append(xy_slice)
+        print(np.shape(_slice))
+        self.current_chunk = np.array(_slice)
+        return self.current_chunk

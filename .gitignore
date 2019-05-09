@@ -1,2 +1,7 @@
 .reference
 .compset
+.source
+.gan_source
+out
+**/MNIST_data
+**/__pycache__

@@ -1,3 +1,4 @@
 tensorflow
 numpy
-cv2
+opencv-python
+scikit-image
