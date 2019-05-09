@@ -1,5 +1,7 @@
 const http = require("http"),
     fs = require("fs"),
+    spawn = require("child_process").spawnSync,
+    crypto = require("crypto"),
     formidable = require("formidable");
 var server = http.createServer();
 
@@ -31,8 +33,9 @@ async function router(req, resp) {
                     "message": "Hello there client!"
                 });
                 break;
-            case "POST /upload":
+            case "POST /process":
                 body = await multipart(req);
+
                 respond(resp, {
                     "success": true
                 });
@@ -84,12 +87,17 @@ function request(req) {
 
 function multipart(req, path) {
     return new Promise((resolve, reject) => {
-        let form = new formidable.IncomingForm();
+        let form = new formidable.IncomingForm(),
+            tag = crypto.randomBytes(16).toString("hex");
         form.on("fileBegin", (name, file) => {
-            file.path = `${__dirname}/uploaded/${file.name}`;
+            fs.mkdirSync(`${__dirname}/uploaded/${tag}`);
+            file.path = `${__dirname}/uploaded/${tag}/${file.name}`;
         });
         form.parse(req, (err, fields, files) => {
             if(err) return reject(err);
+            for(let file in files) {
+                files[file]["tag"] = tag;
+            }
             log("MULTIPART -> " + JSON.stringify(fields) + JSON.stringify(files))
             resolve(fields, files);
         });
